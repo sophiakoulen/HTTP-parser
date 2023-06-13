@@ -1,9 +1,12 @@
 NAME = program
 CC = c++
 CFLAGS = -Wall -Wextra -Werror -std=c++98
+ifdef DEBUG
+	CFLAGS += -g -fsanitize=address
+endif
 
 CLASSES = HTTPRequest
-SRCS = main.cpp $(addsuffix .cpp, $(CLASSES))
+SRCS = main.cpp $(addsuffix .cpp, $(CLASSES)) utils.cpp
 OBJS = $(SRCS:.cpp=.o)
 
 %.o:%.cpp

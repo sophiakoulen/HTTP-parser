@@ -5,11 +5,15 @@ using namespace std;
 
 int main()
 {
-	string str1 = "GET /truc_bidule HTTp /42.43\r\n";
+	string str1 = "GET /truc_bidule HTTP /42.43\r\nfield-name:field,value    	\n";
+	string str2 = "POST / HTTP/2.0\r\nhello: truc\r\nHost: truc-bidule\r\nhello: world\r\n";
+	string str3 = "POST / HTTP/1.1\r\nhost:";
+	string str4 = "POST / HTTP/1.1";
+	string str5 = "";
 
 	try
 	{
-		HTTPRequest req1(str1);
+		HTTPRequest req1(str2);
 		cout<<req1;
 	}
 	catch (HTTPRequest::BadRequestException& e)

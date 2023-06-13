@@ -4,6 +4,7 @@
 # include <string>
 # include <ostream>
 # include <exception>
+# include <map>
 
 typedef struct
 {
@@ -26,6 +27,9 @@ class HTTPRequest
 		std::string	getURI() const;
 		std::string	getMethod() const;
 
+		/* serialize */
+		std::string	serialize() const;
+
 		/* bad request exception */
 		class BadRequestException: public std::exception
 		{
@@ -43,7 +47,7 @@ class HTTPRequest
 		std::string	_method;
 
 		/* headers */
-
+		std::map<std::string, std::string>	_headers;
 		/* body */
 
 		/* default constructor */
@@ -51,7 +55,6 @@ class HTTPRequest
 
 		/* parser */
 		void		parse(const std::string& input);
-		std::string	getline(std::string& input);
 		void		parseRequestLine(std::string line);
 		void		parseHeaders(std::vector<std::string> lines);
 };

@@ -1,6 +1,8 @@
 #include "HTTPRequest.hpp"
+#include "utils.hpp"
 #include <iostream>
 #include <sstream>
+#include <map>
 
 std::istream &operator>>(std::istream &is, char const *s);
 
@@ -8,6 +10,12 @@ HTTPRequest::HTTPRequest(std::string &input)
 {
 	std::cout << "HTTPRequest ctor" << std::endl;
 	parse(input);
+
+	/* print the headers */
+	for (std::map<std::string, std::string>::iterator it = _headers.begin(); it != _headers.end(); it++)
+	{
+		std::cout<<it->first<<": "<<it->second<<std::endl;
+	}
 }
 
 HTTPRequest::HTTPRequest(const HTTPRequest &cpy)
@@ -31,6 +39,9 @@ t_version	HTTPRequest::getVersion() const { return _version; }
 std::string	HTTPRequest::getURI() const { return _uri; }
 std::string	HTTPRequest::getMethod() const { return _method; }
 
+/* serialize */
+
+
 
 /* bad request exception */
 const char *HTTPRequest::BadRequestException::what() const throw()
@@ -40,56 +51,33 @@ const char *HTTPRequest::BadRequestException::what() const throw()
 
 /* parser */
 
+#include <vector>
+#include <string>
+
 void HTTPRequest::parse(const std::string &input)
 {
-	std::string cpy;
-	std::string line;
+	std::istringstream	iss(input);
+	std::string			line;
 
-	cpy = input;
-	line = getline(cpy);
+	std::getline(iss, line);
+	utils::sanitizeline(line); /* need to do these to operations in one line for the sake of elegance! */
+
 	parseRequestLine(line);
 
 	std::vector<std::string>	header_lines;
-	line = getline(cpy);
+	std::getline(iss, line);
+	utils::sanitizeline(line);
+
 	while (line != "")
 	{
+		if (iss.eof())
+			throw BadRequestException();
 		header_lines.push_back(line);
-		line = getline(cpy);
+		std::getline(iss, line);
+		utils::sanitizeline(line);
 	}
 	parseHeaders(header_lines);
 
-}
-
-std::string HTTPRequest::getline(std::string &input)
-{
-	std::string line;
-	unsigned int i;
-
-	for (i = 0; i < input.size(); i++)
-	{
-		if (input[i] == '\n')
-			break;
-		line += input[i];
-	}
-
-	if (input[i] == '\n')
-		i++;
-
-	input = input.substr(i, input.size() - i);
-
-	/* remove any preceding \r */
-	for (i = line.length() - 1; i >= 0 && line[i] == '\r'; i--)
-		;
-	line.resize(i + 1);
-
-	/* replace bare cr with sp*/
-	for (i = 0; i < line.size(); i++)
-	{
-		if (line[i] == '\r')
-			line[i] = ' ';
-	}
-
-	return (line);
 }
 
 void	HTTPRequest::parseRequestLine(std::string line)
@@ -100,6 +88,38 @@ void	HTTPRequest::parseRequestLine(std::string line)
 
 	if (input.fail())
 		throw BadRequestException();
+}
+
+void	HTTPRequest::parseHeaders(std::vector<std::string> lines)
+{
+	for (unsigned int i = 0; i < lines.size(); i++)
+	{
+		std::string	fieldname;
+		std::string	fieldvalue;
+
+		size_t pos = lines[i].find(':');
+		if (pos == std::string::npos)
+			throw BadRequestException();
+
+		fieldname = lines[i].substr(0, pos);
+		if (fieldname.find_first_of(LINEAR_WHITESPACE) != std::string::npos) /* reject if there is whitespace in the fieldname */
+			throw BadRequestException();
+
+		fieldvalue = lines[i].substr(pos + 1, lines[i].size() - pos - 1); /* trim right and left optional whitespace */
+		utils::trim(fieldvalue);
+
+		/*
+			if field-name is not present in map, insert the values
+			else if it is already present, append the values
+
+			fieldname is case-insensitive!
+		*/
+		std::string&	content = _headers[fieldname];
+		if (content == "")
+			content = fieldvalue;
+		else
+			content += ", " + fieldvalue;
+	}
 }
 
 std::ostream &operator<<(std::ostream &o, const HTTPRequest &req)
