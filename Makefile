@@ -5,7 +5,7 @@ ifdef DEBUG
 	CFLAGS += -g -fsanitize=address
 endif
 
-CLASSES = HTTPRequest
+CLASSES = HTTPRequest HTTPHeaders
 SRCS = main.cpp $(addsuffix .cpp, $(CLASSES)) utils.cpp
 OBJS = $(SRCS:.cpp=.o)
 

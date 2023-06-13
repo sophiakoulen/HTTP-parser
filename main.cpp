@@ -11,23 +11,17 @@ int main()
 	string str4 = "POST / HTTP/1.1";
 	string str5 = "";
 
-	try
-	{
-		HTTPRequest req1(str2);
-		cout<<req1;
-	}
-	catch (HTTPRequest::BadRequestException& e)
-	{
-		cout<<"parsing error"<<endl;
-	}
-/*
-	string str2 = "\r\nDELETE /truc_bidule HTTP/1.0";
-	HTTPRequest req2(str2);
-	cout<<req2;
 
-	string str3 = "DELETE \t *     \r HTTP/1.0";
-	HTTPRequest req3(str2);
-	cout<<req2;
-*/
+	HTTPRequest req1(str1);
+
+	cout<<endl;
+
+	if (req1.getHasValidSyntax())
+		cout<<req1;
+	else
+		cout<<"Invalid syntax"<<endl;
+
+	cout<<endl;
+
 	return 0;
 }

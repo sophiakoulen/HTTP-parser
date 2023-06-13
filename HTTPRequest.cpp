@@ -8,39 +8,61 @@ std::istream &operator>>(std::istream &is, char const *s);
 
 HTTPRequest::HTTPRequest(std::string &input)
 {
-	std::cout << "HTTPRequest ctor" << std::endl;
-	parse(input);
-
-	/* print the headers */
-	for (std::map<std::string, std::string>::iterator it = _headers.begin(); it != _headers.end(); it++)
+	std::cout << "HTTPRequest constructor" << std::endl;
+	_hasValidSyntax = true;
+	try
 	{
-		std::cout<<it->first<<": "<<it->second<<std::endl;
+		parse(input);
+	}
+	catch (BadRequestException& e)
+	{
+		_hasValidSyntax = false;
 	}
 }
 
-HTTPRequest::HTTPRequest(const HTTPRequest &cpy)
+HTTPRequest::HTTPRequest(const HTTPRequest &cpy):
+	_hasValidSyntax(cpy._hasValidSyntax),
+	_method(cpy._method),
+	_uri(cpy._uri),
+	_version(cpy._version),
+	_headers(cpy._headers)
 {
-	(void)cpy;
+	std::cout << "HTTPRequest copy constructor" << std::endl;
 }
 
 HTTPRequest::~HTTPRequest()
 {
+	std::cout << "HTTPRequest destructor" << std::endl;
 }
 
 HTTPRequest &HTTPRequest::operator=(const HTTPRequest &rhs)
 {
-	(void)rhs;
+	std::cout << "HTTPRequest assignment operator" << std::endl;
+	_hasValidSyntax = rhs._hasValidSyntax;
+	_method = rhs._method;
+	_uri = rhs._uri;
+	_version = rhs._version;
+	_headers = rhs._headers;
 	return (*this);
 }
 
 /* getters */
-int			HTTPRequest::getStatus() const { return _status; }
-t_version	HTTPRequest::getVersion() const { return _version; }
-std::string	HTTPRequest::getURI() const { return _uri; }
-std::string	HTTPRequest::getMethod() const { return _method; }
+bool				HTTPRequest::getHasValidSyntax() const { return _hasValidSyntax; }
+t_version			HTTPRequest::getVersion() const { return _version; }
+std::string			HTTPRequest::getURI() const { return _uri; }
+std::string			HTTPRequest::getMethod() const { return _method; }
+const HTTPHeaders&		HTTPRequest::getHeaders() const { return _headers; } /* should not be like that in the future */
 
 /* serialize */
+std::string	HTTPRequest::serialize() const
+{
+	std::ostringstream	output;
 
+	output << getMethod() << " " << getURI() << " HTTP/" << getVersion().major << "." <<getVersion().minor << "\r\n";
+	output << getHeaders().serialize();
+
+	return (output.str());
+}
 
 
 /* bad request exception */
@@ -108,24 +130,13 @@ void	HTTPRequest::parseHeaders(std::vector<std::string> lines)
 		fieldvalue = lines[i].substr(pos + 1, lines[i].size() - pos - 1); /* trim right and left optional whitespace */
 		utils::trim(fieldvalue);
 
-		/*
-			if field-name is not present in map, insert the values
-			else if it is already present, append the values
-
-			fieldname is case-insensitive!
-		*/
-		std::string&	content = _headers[fieldname];
-		if (content == "")
-			content = fieldvalue;
-		else
-			content += ", " + fieldvalue;
+		_headers.insert(fieldname, fieldvalue);
 	}
 }
 
 std::ostream &operator<<(std::ostream &o, const HTTPRequest &req)
 {
-	o << "method: " << req.getMethod() << ", target: " << req.getURI() << ", HTTP-version: " << req.getVersion().major << "." << req.getVersion().minor << std::endl;
-
+	o << req.serialize();
 	return (o);
 }
 

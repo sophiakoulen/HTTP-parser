@@ -1,6 +1,7 @@
 #ifndef HTTP_REQUEST_H
 # define HTTP_REQUEST_H
 
+# include "HTTPHeaders.hpp"
 # include <string>
 # include <ostream>
 # include <exception>
@@ -22,10 +23,11 @@ class HTTPRequest
 		HTTPRequest&	operator=(const HTTPRequest& rhs);
 
 		/* getters */
-		int			getStatus() const;
-		t_version	getVersion() const;
-		std::string	getURI() const;
-		std::string	getMethod() const;
+		bool				getHasValidSyntax() const;
+		t_version			getVersion() const;
+		std::string			getURI() const;
+		std::string			getMethod() const;
+		const HTTPHeaders&	getHeaders() const;
 
 		/* serialize */
 		std::string	serialize() const;
@@ -38,16 +40,17 @@ class HTTPRequest
 
 	private:
 
-		/* status */
-		int			_status;
+		/* was there a parse error ? */
+		bool		_hasValidSyntax;
 
 		/* request line */
-		t_version	_version;
-		std::string	_uri;
 		std::string	_method;
+		std::string	_uri;
+		t_version	_version;
 
 		/* headers */
-		std::map<std::string, std::string>	_headers;
+		HTTPHeaders	_headers;
+
 		/* body */
 
 		/* default constructor */

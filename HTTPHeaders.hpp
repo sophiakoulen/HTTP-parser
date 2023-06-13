@@ -9,6 +9,11 @@
 class HTTPHeaders
 {
 	public:
+		HTTPHeaders();
+		HTTPHeaders(const HTTPHeaders& h);
+		~HTTPHeaders();
+		HTTPHeaders&	operator=(const HTTPHeaders& h);
+
 		void		insert(const std::string& name, const std::string& value);
 		std::string	serialize() const;
 
