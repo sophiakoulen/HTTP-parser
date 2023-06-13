@@ -28,6 +28,7 @@ class HTTPRequest
 		std::string			getURI() const;
 		std::string			getMethod() const;
 		const HTTPHeaders&	getHeaders() const;
+		std::string			getBody() const;
 
 		/* serialize */
 		std::string	serialize() const;
@@ -52,6 +53,7 @@ class HTTPRequest
 		HTTPHeaders	_headers;
 
 		/* body */
+		std::string	_body; /* this may contain binary data! */
 
 		/* default constructor */
 		HTTPRequest();

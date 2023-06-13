@@ -25,7 +25,8 @@ HTTPRequest::HTTPRequest(const HTTPRequest &cpy):
 	_method(cpy._method),
 	_uri(cpy._uri),
 	_version(cpy._version),
-	_headers(cpy._headers)
+	_headers(cpy._headers),
+	_body(cpy._body)
 {
 	std::cout << "HTTPRequest copy constructor" << std::endl;
 }
@@ -43,15 +44,17 @@ HTTPRequest &HTTPRequest::operator=(const HTTPRequest &rhs)
 	_uri = rhs._uri;
 	_version = rhs._version;
 	_headers = rhs._headers;
+	_body = rhs._body;
 	return (*this);
 }
 
 /* getters */
-bool				HTTPRequest::getHasValidSyntax() const { return _hasValidSyntax; }
-t_version			HTTPRequest::getVersion() const { return _version; }
-std::string			HTTPRequest::getURI() const { return _uri; }
-std::string			HTTPRequest::getMethod() const { return _method; }
+bool					HTTPRequest::getHasValidSyntax() const { return _hasValidSyntax; }
+t_version				HTTPRequest::getVersion() const { return _version; }
+std::string				HTTPRequest::getURI() const { return _uri; }
+std::string				HTTPRequest::getMethod() const { return _method; }
 const HTTPHeaders&		HTTPRequest::getHeaders() const { return _headers; } /* should not be like that in the future */
+std::string				HTTPRequest::getBody() const { return _body; }
 
 /* serialize */
 std::string	HTTPRequest::serialize() const
@@ -60,6 +63,7 @@ std::string	HTTPRequest::serialize() const
 
 	output << getMethod() << " " << getURI() << " HTTP/" << getVersion().major << "." <<getVersion().minor << "\r\n";
 	output << getHeaders().serialize();
+	output << getBody();
 
 	return (output.str());
 }
@@ -100,6 +104,12 @@ void HTTPRequest::parse(const std::string &input)
 	}
 	parseHeaders(header_lines);
 
+
+
+	/* what remains is the body */
+	//std::cout<<iss.tellg()<<std::endl;
+	if (!iss.fail())
+		_body = std::string(iss.str().substr(iss.tellg()));
 }
 
 void	HTTPRequest::parseRequestLine(std::string line)
